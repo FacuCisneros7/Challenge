@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import org.example.challenge.ui.home.HomeScreen
 import org.example.challenge.ui.home.HomeViewModel
 import org.example.challenge.ui.profile.ProfileScreen
+import org.example.challenge.ui.profile.ProfileViewModel
 import org.example.challenge.ui.search.SearchScreen
 import org.example.challenge.ui.search.SearchViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -23,6 +24,7 @@ fun MainFlowScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val homeViewModel: HomeViewModel = koinViewModel()
     val searchViewModel: SearchViewModel = koinViewModel()
+    val profileViewModel: ProfileViewModel = koinViewModel()
 
     val topBarTitle = when (selectedTab) {
         0 -> "Futbolboxd"
@@ -74,7 +76,7 @@ fun MainFlowScreen(
             when (selectedTab) {
                 0 -> HomeScreen(viewModel = homeViewModel, onMatchClick = onMatchClick)
                 1 -> SearchScreen(viewModel = searchViewModel, onMatchClick = onMatchClick)
-                2 -> ProfileScreen(onSignOut = onSignOut)
+                2 -> ProfileScreen(viewModel = profileViewModel, onSignOut = onSignOut, onMatchClick = onMatchClick)
             }
         }
     }

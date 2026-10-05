@@ -11,6 +11,7 @@ import org.example.challenge.domain.repository.ReviewRepository
 import org.example.challenge.domain.repository.UserRepository
 import org.example.challenge.ui.auth.AuthViewModel
 import org.example.challenge.ui.home.HomeViewModel
+import org.example.challenge.ui.profile.ProfileViewModel
 import org.example.challenge.ui.search.SearchViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -29,6 +30,7 @@ val appModule: Module = module {
     factory { AuthViewModel(get()) }
     factory { HomeViewModel(get()) }
     factory { SearchViewModel(get()) }
+    factory { ProfileViewModel(get(), get(), get(), get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
