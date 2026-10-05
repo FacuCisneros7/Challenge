@@ -1,48 +1,64 @@
 package org.example.challenge
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import challengetecnico.shared.generated.resources.Res
-import challengetecnico.shared.generated.resources.compose_multiplatform
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import org.example.challenge.ui.auth.AuthViewModel
+import org.example.challenge.ui.auth.LoginScreen
+import org.example.challenge.ui.auth.RegisterScreen
+import org.example.challenge.ui.navigation.MainFlowScreen
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        val navController = rememberNavController()
+        val authViewModel: AuthViewModel = koinViewModel()
+
+        NavHost(
+            navController = navController,
+            startDestination = "register"
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+            composable("register") {
+                RegisterScreen(
+                    viewModel = authViewModel,
+                    onRegisterSuccess = {
+                        navController.navigate("main") {
+                            popUpTo("register") { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate("login")
+                    }
+                )
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
+            composable("login") {
+                LoginScreen(
+                    viewModel = authViewModel,
+                    onLoginSuccess = {
+                        navController.navigate("main") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable("main") {
+                MainFlowScreen(
+                    onSignOut = {
+                        authViewModel.signOut {
+                            navController.navigate("login") {
+                                popUpTo("main") { inclusive = true }
+                            }
+                        }
+                    }
+                )
             }
         }
     }
