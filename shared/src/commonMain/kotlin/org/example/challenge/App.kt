@@ -5,16 +5,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.example.challenge.data.remote.DatabaseSeeder
 import org.example.challenge.ui.auth.AuthViewModel
 import org.example.challenge.ui.auth.LoginScreen
 import org.example.challenge.ui.auth.RegisterScreen
 import org.example.challenge.ui.navigation.MainFlowScreen
 import org.example.challenge.ui.theme.FutbolboxdTheme
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
 fun App() {
+    val seeder: DatabaseSeeder = koinInject()
+    LaunchedEffect(Unit) {
+        seeder.seedIfEmpty()
+    }
+
     FutbolboxdTheme {
         val navController = rememberNavController()
         val authViewModel: AuthViewModel = koinViewModel()
@@ -28,7 +35,7 @@ fun App() {
                     viewModel = authViewModel,
                     onRegisterSuccess = {
                         navController.navigate("main") {
-                            popUpTo("register") { inclusive = true}
+                            popUpTo("register") { inclusive = true }
                         }
                     },
                     onNavigateToLogin = {

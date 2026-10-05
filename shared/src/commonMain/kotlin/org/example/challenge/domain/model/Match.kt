@@ -9,5 +9,11 @@ data class Match(
     val imageUrl: String,
     val competition: String,
     val date: Instant,
-    val tags: List<String>
-)
+    val tags: List<String>,
+    val stadium: String = "",
+    val homeScore: Int? = null,
+    val awayScore: Int? = null
+) {
+    val formattedScore: String
+        get() = if (homeScore != null && awayScore != null) "$homeScore - $awayScore" else ""
+}
