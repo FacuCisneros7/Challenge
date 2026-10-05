@@ -10,6 +10,7 @@ import org.example.challenge.domain.repository.MatchRepository
 import org.example.challenge.domain.repository.ReviewRepository
 import org.example.challenge.domain.repository.UserRepository
 import org.example.challenge.ui.auth.AuthViewModel
+import org.example.challenge.ui.detail.DetailViewModel
 import org.example.challenge.ui.home.HomeViewModel
 import org.example.challenge.ui.profile.ProfileViewModel
 import org.example.challenge.ui.search.SearchViewModel
@@ -31,6 +32,7 @@ val appModule: Module = module {
     factory { HomeViewModel(get()) }
     factory { SearchViewModel(get()) }
     factory { ProfileViewModel(get(), get(), get(), get()) }
+    factory { (matchId: String) -> DetailViewModel(matchId, get(), get(), get(), get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) {

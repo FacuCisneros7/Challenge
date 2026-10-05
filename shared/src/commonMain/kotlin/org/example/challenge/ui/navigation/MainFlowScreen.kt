@@ -3,16 +3,23 @@ package org.example.challenge.ui.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import challengetecnico.shared.generated.resources.Res
+import challengetecnico.shared.generated.resources.busqueda
+import challengetecnico.shared.generated.resources.cancha
+import challengetecnico.shared.generated.resources.futbolista
 import org.example.challenge.ui.home.HomeScreen
 import org.example.challenge.ui.home.HomeViewModel
 import org.example.challenge.ui.profile.ProfileScreen
 import org.example.challenge.ui.profile.ProfileViewModel
 import org.example.challenge.ui.search.SearchScreen
 import org.example.challenge.ui.search.SearchViewModel
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +39,14 @@ fun MainFlowScreen(
         else -> "Perfil"
     }
 
+    val navItemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -50,24 +65,47 @@ fun MainFlowScreen(
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
                 NavigationBarItem(
-                    icon = { Text("⚽") },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.cancha),
+                            contentDescription = "Home",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
                     label = { Text("Home") },
                     selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 }
+                    onClick = { selectedTab = 0 },
+                    colors = navItemColors
                 )
                 NavigationBarItem(
-                    icon = { Text("🔍") },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.busqueda),
+                            contentDescription = "Buscar",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
                     label = { Text("Buscar") },
                     selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 }
+                    onClick = { selectedTab = 1 },
+                    colors = navItemColors
                 )
                 NavigationBarItem(
-                    icon = { Text("👤") },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.futbolista),
+                            contentDescription = "Perfil",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
                     label = { Text("Perfil") },
                     selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 }
+                    onClick = { selectedTab = 2 },
+                    colors = navItemColors
                 )
             }
         }
