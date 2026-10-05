@@ -4,6 +4,9 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.Timestamp
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.datetime.Instant
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Match
 import org.example.challenge.domain.repository.MatchRepository
@@ -18,20 +21,20 @@ class MatchRepositoryImpl : MatchRepository {
                 .get()
 
             val matches = snapshot.documents.map { doc ->
-                val timestamp = doc.get<Timestamp?>("date")
+                val timestamp = doc.get("date", Timestamp.serializer().nullable)
                 val instant = timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
 
                 Match(
                     id = doc.id,
-                    homeTeam = doc.get<String>("homeTeam"),
-                    awayTeam = doc.get<String>("awayTeam"),
-                    imageUrl = doc.get<String>("imageUrl"),
-                    competition = doc.get<String>("competition"),
+                    homeTeam = doc.get("homeTeam", String.serializer().nullable) ?: "",
+                    awayTeam = doc.get("awayTeam", String.serializer().nullable) ?: "",
+                    imageUrl = doc.get("imageUrl", String.serializer().nullable) ?: "",
+                    competition = doc.get("competition", String.serializer().nullable) ?: "",
                     date = instant,
-                    tags = doc.get<List<String>?>("tags") ?: emptyList(),
-                    stadium = doc.get<String?>("stadium") ?: "",
-                    homeScore = doc.get<Number?>("homeScore")?.toInt(),
-                    awayScore = doc.get<Number?>("awayScore")?.toInt()
+                    tags = doc.get("tags", ListSerializer(String.serializer()).nullable) ?: emptyList(),
+                    stadium = doc.get("stadium", String.serializer().nullable) ?: "",
+                    homeScore = doc.get("homeScore", Int.serializer().nullable),
+                    awayScore = doc.get("awayScore", Int.serializer().nullable)
                 )
             }
             AppResult.Success(matches)
@@ -46,20 +49,20 @@ class MatchRepositoryImpl : MatchRepository {
             if (!doc.exists) {
                 return AppResult.Success(null)
             }
-            val timestamp = doc.get<Timestamp?>("date")
+            val timestamp = doc.get("date", Timestamp.serializer().nullable)
             val instant = timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
 
             val match = Match(
                 id = doc.id,
-                homeTeam = doc.get<String>("homeTeam"),
-                awayTeam = doc.get<String>("awayTeam"),
-                imageUrl = doc.get<String>("imageUrl"),
-                competition = doc.get<String>("competition"),
+                homeTeam = doc.get("homeTeam", String.serializer().nullable) ?: "",
+                awayTeam = doc.get("awayTeam", String.serializer().nullable) ?: "",
+                imageUrl = doc.get("imageUrl", String.serializer().nullable) ?: "",
+                competition = doc.get("competition", String.serializer().nullable) ?: "",
                 date = instant,
-                tags = doc.get<List<String>?>("tags") ?: emptyList(),
-                stadium = doc.get<String?>("stadium") ?: "",
-                homeScore = doc.get<Number?>("homeScore")?.toInt(),
-                awayScore = doc.get<Number?>("awayScore")?.toInt()
+                tags = doc.get("tags", ListSerializer(String.serializer()).nullable) ?: emptyList(),
+                stadium = doc.get("stadium", String.serializer().nullable) ?: "",
+                homeScore = doc.get("homeScore", Int.serializer().nullable),
+                awayScore = doc.get("awayScore", Int.serializer().nullable)
             )
             AppResult.Success(match)
         } catch (e: Exception) {

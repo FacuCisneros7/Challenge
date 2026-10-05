@@ -23,12 +23,15 @@ fun App() {
     }
 
     FutbolboxdTheme {
-        val navController = rememberNavController()
         val authViewModel: AuthViewModel = koinViewModel()
+        val currentUserId by authViewModel.currentUserId.collectAsState()
+
+        val startDestination = if (currentUserId != null) "main" else "register"
+        val navController = rememberNavController()
 
         NavHost(
             navController = navController,
-            startDestination = "register"
+            startDestination = startDestination
         ) {
             composable("register") {
                 RegisterScreen(

@@ -6,6 +6,8 @@ import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.UserProfile
 import org.example.challenge.domain.repository.UserRepository
@@ -19,7 +21,7 @@ class UserRepositoryImpl : UserRepository {
             if (!doc.exists) {
                 return AppResult.Success(null)
             }
-            val createdTs = doc.get<Timestamp?>("createdAt")
+            val createdTs = doc.get("createdAt", Timestamp.serializer().nullable)
             val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
 
             val favSnapshot = firestore.collection("users").document(userId).collection("favorites").get()
@@ -27,8 +29,8 @@ class UserRepositoryImpl : UserRepository {
 
             val profile = UserProfile(
                 userId = userId,
-                username = doc.get<String>("username"),
-                bio = doc.get<String>("bio"),
+                username = doc.get("username", String.serializer().nullable) ?: "",
+                bio = doc.get("bio", String.serializer().nullable) ?: "",
                 createdAt = createdInstant,
                 favorites = favorites
             )

@@ -5,6 +5,8 @@ import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.Timestamp
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.datetime.Instant
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Review
 import org.example.challenge.domain.repository.ReviewRepository
@@ -74,20 +76,20 @@ class ReviewRepositoryImpl : ReviewRepository {
     }
 
     private fun mapDocumentToReview(doc: DocumentSnapshot): Review {
-        val createdTs = doc.get<Timestamp?>("createdAt")
-        val updatedTs = doc.get<Timestamp?>("updatedAt")
+        val createdTs = doc.get("createdAt", Timestamp.serializer().nullable)
+        val updatedTs = doc.get("updatedAt", Timestamp.serializer().nullable)
         val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
         val updatedInstant = updatedTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
 
-        val ratingVal = doc.get<Number?>("rating")?.toInt() ?: 0
+        val ratingVal = doc.get("rating", Int.serializer().nullable) ?: 0
 
         return Review(
             id = doc.id,
-            matchId = doc.get<String>("matchId"),
-            userId = doc.get<String>("userId"),
-            username = doc.get<String>("username"),
+            matchId = doc.get("matchId", String.serializer().nullable) ?: "",
+            userId = doc.get("userId", String.serializer().nullable) ?: "",
+            username = doc.get("username", String.serializer().nullable) ?: "",
             rating = ratingVal,
-            text = doc.get<String>("text"),
+            text = doc.get("text", String.serializer().nullable) ?: "",
             createdAt = createdInstant,
             updatedAt = updatedInstant
         )
