@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Match
 import org.example.challenge.domain.model.Review
+import org.example.challenge.domain.model.UserProfile
 import org.example.challenge.domain.repository.AuthRepository
 import org.example.challenge.domain.repository.MatchRepository
 import org.example.challenge.domain.repository.ReviewRepository
@@ -18,12 +19,17 @@ data class ProfileUiState(
     val userId: String = "",
     val username: String = "",
     val bio: String = "",
+    val followers: List<UserProfile> = emptyList(),
+    val following: List<UserProfile> = emptyList(),
     val userReviews: List<Review> = emptyList(),
     val favoriteMatches: List<Match> = emptyList(),
     val errorMessage: String? = null,
     val isEditing: Boolean = false,
     val isUpdating: Boolean = false
-)
+) {
+    val followersCount: Int get() = followers.size
+    val followingCount: Int get() = following.size
+}
 
 class ProfileViewModel(
     private val authRepository: AuthRepository,
@@ -36,6 +42,8 @@ class ProfileViewModel(
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     private var observeFavoritesJob: Job? = null
+    private var observeFollowersJob: Job? = null
+    private var observeFollowingJob: Job? = null
 
     init {
         loadProfileData()
@@ -64,7 +72,9 @@ class ProfileViewModel(
                         _uiState.update {
                             it.copy(
                                 username = profile.username.ifBlank { "Usuario" },
-                                bio = profile.bio.ifBlank { "Sin biografía" }
+                                bio = profile.bio.ifBlank { "Sin biografía" },
+                                followers = profile.followers,
+                                following = profile.following
                             )
                         }
                     } else {
@@ -74,7 +84,9 @@ class ProfileViewModel(
                         _uiState.update {
                             it.copy(
                                 username = defaultName,
-                                bio = defaultBio
+                                bio = defaultBio,
+                                followers = emptyList(),
+                                following = emptyList()
                             )
                         }
                     }
@@ -94,7 +106,23 @@ class ProfileViewModel(
 
             _uiState.update { it.copy(isLoading = false) }
 
-            // Observe Favorites asynchronously in a separate coroutine
+            // Observe Followers asynchronously
+            observeFollowersJob?.cancel()
+            observeFollowersJob = viewModelScope.launch {
+                userRepository.observeFollowers(userId).collect { followers ->
+                    _uiState.update { it.copy(followers = followers) }
+                }
+            }
+
+            // Observe Following asynchronously
+            observeFollowingJob?.cancel()
+            observeFollowingJob = viewModelScope.launch {
+                userRepository.observeFollowing(userId).collect { following ->
+                    _uiState.update { it.copy(following = following) }
+                }
+            }
+
+            // Observe Favorites asynchronously
             observeFavoritesJob?.cancel()
             observeFavoritesJob = viewModelScope.launch {
                 userRepository.observeFavorites(userId).collect { favoriteIds ->

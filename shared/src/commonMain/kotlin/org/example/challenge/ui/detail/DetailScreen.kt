@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -323,7 +325,15 @@ fun DetailScreen(
                         }
                     } else {
                         items(uiState.reviews) { review ->
-                            ReviewCardItem(review = review)
+                            val isFollowing = uiState.followingUserIds.contains(review.userId)
+                            ReviewCardItem(
+                                review = review,
+                                currentUserId = uiState.currentUserId,
+                                isFollowing = isFollowing,
+                                onToggleFollow = {
+                                    viewModel.toggleFollowUser(review.userId, review.username)
+                                }
+                            )
                         }
                     }
                 }
@@ -417,7 +427,12 @@ fun ReviewForm(
 }
 
 @Composable
-fun ReviewCardItem(review: Review) {
+fun ReviewCardItem(
+    review: Review,
+    currentUserId: String,
+    isFollowing: Boolean,
+    onToggleFollow: () -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
@@ -449,6 +464,31 @@ fun ReviewCardItem(review: Review) {
                     text = review.text,
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
+
+            // Follow button at bottom right (only for other users)
+            if (review.userId.isNotBlank() && review.userId != currentUserId) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onToggleFollow) {
+                        Icon(
+                            imageVector = if (isFollowing) Icons.Default.Check else Icons.Default.PersonAdd,
+                            contentDescription = if (isFollowing) "Siguiendo" else "Seguir",
+                            tint = if (isFollowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (isFollowing) "Siguiendo" else "Seguir",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isFollowing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }

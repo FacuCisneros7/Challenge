@@ -2,6 +2,7 @@ package org.example.challenge.ui.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -22,6 +23,7 @@ data class DetailUiState(
     val userReview: Review? = null,
     val currentUserId: String = "",
     val currentUsername: String = "",
+    val followingUserIds: List<String> = emptyList(),
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null
 )
@@ -36,6 +38,8 @@ class DetailViewModel(
 
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
+
+    private var observeFollowingJob: Job? = null
 
     init {
         loadMatchDetail()
@@ -53,6 +57,15 @@ class DetailViewModel(
                 if (profileResult is AppResult.Success) {
                     val username = profileResult.data?.username ?: "Usuario"
                     _uiState.update { it.copy(currentUsername = username) }
+                }
+
+                // Observe Following list
+                observeFollowingJob?.cancel()
+                observeFollowingJob = viewModelScope.launch {
+                    userRepository.observeFollowing(userId).collect { followingList ->
+                        val ids = followingList.map { it.userId }
+                        _uiState.update { it.copy(followingUserIds = ids) }
+                    }
                 }
             }
 
@@ -108,6 +121,16 @@ class DetailViewModel(
             if (userId.isBlank()) return@launch
 
             userRepository.toggleFavorite(userId, matchId)
+        }
+    }
+
+    fun toggleFollowUser(targetUserId: String, targetUsername: String) {
+        viewModelScope.launch {
+            val currentUserId = _uiState.value.currentUserId
+            val currentUsername = _uiState.value.currentUsername.ifBlank { "Usuario" }
+            if (currentUserId.isBlank() || currentUserId == targetUserId) return@launch
+
+            userRepository.toggleFollow(currentUserId, currentUsername, targetUserId, targetUsername)
         }
     }
 

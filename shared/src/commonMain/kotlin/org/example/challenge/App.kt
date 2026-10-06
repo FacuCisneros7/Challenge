@@ -81,7 +81,9 @@ fun App() {
                             }
                         },
                         onNavigateToLogin = {
-                            navController.navigate("login")
+                            navController.navigate("login") {
+                                popUpTo("register") { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -90,11 +92,13 @@ fun App() {
                         viewModel = authViewModel,
                         onLoginSuccess = {
                             navController.navigate("main") {
-                                popUpTo("register") { inclusive = true }
+                                popUpTo("login") { inclusive = true }
                             }
                         },
                         onNavigateToRegister = {
-                            navController.popBackStack()
+                            navController.navigate("register") {
+                                popUpTo("login") { inclusive = true }
+                            }
                         }
                     )
                 }
