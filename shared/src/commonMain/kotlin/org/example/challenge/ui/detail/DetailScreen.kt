@@ -29,7 +29,8 @@ import org.example.challenge.domain.model.Review
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onUserClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var isEditingReview by remember { mutableStateOf(false) }
@@ -332,6 +333,9 @@ fun DetailScreen(
                                 isFollowing = isFollowing,
                                 onToggleFollow = {
                                     viewModel.toggleFollowUser(review.userId, review.username)
+                                },
+                                onUserClick = {
+                                    onUserClick(review.userId)
                                 }
                             )
                         }
@@ -431,7 +435,8 @@ fun ReviewCardItem(
     review: Review,
     currentUserId: String,
     isFollowing: Boolean,
-    onToggleFollow: () -> Unit
+    onToggleFollow: () -> Unit,
+    onUserClick: () -> Unit = {}
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -448,7 +453,9 @@ fun ReviewCardItem(
                 Text(
                     text = review.username.ifBlank { "Usuario" },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable { onUserClick() }
                 )
                 Text(
                     text = "⭐ ${review.rating}/5",

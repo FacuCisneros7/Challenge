@@ -1,5 +1,6 @@
 package org.example.challenge.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.example.challenge.domain.model.Review
+import org.example.challenge.domain.model.UserProfile
 import org.example.challenge.ui.home.MatchCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,10 +24,12 @@ import org.example.challenge.ui.home.MatchCard
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onSignOut: () -> Unit,
-    onMatchClick: (String) -> Unit = {}
+    onMatchClick: (String) -> Unit = {},
+    onUserClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
+    var activeFollowDialogTitle by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadProfileData()
@@ -83,12 +87,18 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Stats row: Seguidores & Seguidos
+                    // Stats row: Seguidores & Seguidos (Clickable)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { activeFollowDialogTitle = "Seguidores" }
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                        ) {
                             Text(
                                 text = "${uiState.followersCount}",
                                 style = MaterialTheme.typography.titleMedium,
@@ -100,7 +110,13 @@ fun ProfileScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { activeFollowDialogTitle = "Seguidos" }
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                        ) {
                             Text(
                                 text = "${uiState.followingCount}",
                                 style = MaterialTheme.typography.titleMedium,
@@ -206,7 +222,109 @@ fun ProfileScreen(
                 }
             )
         }
+
+        // Followers / Following List Dialog
+        if (activeFollowDialogTitle != null) {
+            val users = if (activeFollowDialogTitle == "Seguidores") uiState.followers else uiState.following
+            FollowListDialog(
+                title = activeFollowDialogTitle!!,
+                users = users,
+                onDismiss = { activeFollowDialogTitle = null },
+                onUserClick = { targetUserId ->
+                    activeFollowDialogTitle = null
+                    onUserClick(targetUserId)
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun FollowListDialog(
+    title: String,
+    users: List<UserProfile>,
+    onDismiss: () -> Unit,
+    onUserClick: (String) -> Unit = {}
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "$title (${users.size})",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            if (users.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (title == "Seguidores") "Aún no tienes seguidores" else "Aún no sigues a nadie",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(users) { user ->
+                        Card(
+                            onClick = {
+                                if (user.userId.isNotBlank()) {
+                                    onUserClick(user.userId)
+                                }
+                            },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape),
+                                    color = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = user.username.take(1).uppercase(),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = user.username.ifBlank { "Usuario" },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
 }
 
 @Composable

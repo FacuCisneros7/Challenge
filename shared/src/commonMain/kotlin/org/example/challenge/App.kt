@@ -21,6 +21,8 @@ import org.example.challenge.ui.auth.RegisterScreen
 import org.example.challenge.ui.detail.DetailScreen
 import org.example.challenge.ui.detail.DetailViewModel
 import org.example.challenge.ui.navigation.MainFlowScreen
+import org.example.challenge.ui.profile.UserProfileDetailScreen
+import org.example.challenge.ui.profile.UserProfileDetailViewModel
 import org.example.challenge.ui.theme.FutbolboxdTheme
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -113,6 +115,9 @@ fun App() {
                         },
                         onMatchClick = { matchId ->
                             navController.navigate("detail/$matchId")
+                        },
+                        onUserClick = { userId ->
+                            navController.navigate("user_detail/$userId")
                         }
                     )
                 }
@@ -126,6 +131,25 @@ fun App() {
                         viewModel = detailViewModel,
                         onBackClick = {
                             navController.popBackStack()
+                        },
+                        onUserClick = { userId ->
+                            navController.navigate("user_detail/$userId")
+                        }
+                    )
+                }
+                composable(
+                    route = "user_detail/{userId}",
+                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val userId = backStackEntry.arguments?.read { getString("userId") } ?: ""
+                    val userDetailViewModel: UserProfileDetailViewModel = koinViewModel(parameters = { parametersOf(userId) })
+                    UserProfileDetailScreen(
+                        viewModel = userDetailViewModel,
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onMatchClick = { matchId ->
+                            navController.navigate("detail/$matchId")
                         }
                     )
                 }

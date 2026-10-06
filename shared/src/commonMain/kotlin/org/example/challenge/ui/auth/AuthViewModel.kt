@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.repository.AuthRepository
+import org.example.challenge.domain.repository.UserRepository
 
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     val currentUserId: StateFlow<String?> = authRepository.currentUserId
@@ -43,7 +45,11 @@ class AuthViewModel(
     ) {
         viewModelScope.launch {
             when (val result = authRepository.signUp(email, password, username)) {
-                is AppResult.Success -> onSuccess(result.data)
+                is AppResult.Success -> {
+                    val uid = result.data
+                    userRepository.updateProfile(uid, username, "Amante del fútbol ⚽")
+                    onSuccess(uid)
+                }
                 is AppResult.Error -> onError(result.message)
             }
         }

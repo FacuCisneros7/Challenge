@@ -26,7 +26,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MainFlowScreen(
     onSignOut: () -> Unit,
-    onMatchClick: (String) -> Unit = {}
+    onMatchClick: (String) -> Unit = {},
+    onUserClick: (String) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val homeViewModel: HomeViewModel = koinViewModel()
@@ -114,7 +115,12 @@ fun MainFlowScreen(
             when (selectedTab) {
                 0 -> HomeScreen(viewModel = homeViewModel, onMatchClick = onMatchClick)
                 1 -> SearchScreen(viewModel = searchViewModel, onMatchClick = onMatchClick)
-                2 -> ProfileScreen(viewModel = profileViewModel, onSignOut = onSignOut, onMatchClick = onMatchClick)
+                2 -> ProfileScreen(
+                    viewModel = profileViewModel,
+                    onSignOut = onSignOut,
+                    onMatchClick = onMatchClick,
+                    onUserClick = onUserClick
+                )
             }
         }
     }
