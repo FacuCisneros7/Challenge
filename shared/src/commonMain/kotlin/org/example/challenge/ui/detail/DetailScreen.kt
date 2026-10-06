@@ -20,9 +20,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.example.challenge.domain.model.Review
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +59,17 @@ fun DetailScreen(
             }
         } else {
             val match = uiState.match!!
+
+            // Format date as dd/MM/yy
+            val formattedDate = try {
+                val localDateTime = match.date.toLocalDateTime(TimeZone.currentSystemDefault())
+                val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+                val month = localDateTime.monthNumber.toString().padStart(2, '0')
+                val year = (localDateTime.year % 100).toString().padStart(2, '0')
+                "$day/$month/$year"
+            } catch (e: Exception) {
+                ""
+            }
 
             Scaffold(
                 topBar = {
@@ -96,70 +110,150 @@ fun DetailScreen(
                         .fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
-                    // Match Hero Card
+                    // Match Hero Header (Two Badges Layout with Centered Balanced Proportions & Date)
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(260.dp)
-                        ) {
-                            AsyncImage(
-                                model = match.imageUrl,
-                                contentDescription = "${match.homeTeam} vs ${match.awayTeam}",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.85f),
-                                                Color.Black
-                                            )
+                                .height(270.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF1E293B),
+                                            Color(0xFF0F172A),
+                                            Color(0xFF020617)
                                         )
                                     )
-                            )
-
+                                )
+                        ) {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.BottomStart)
-                                    .padding(16.dp)
+                                    .fillMaxSize()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                if (match.formattedScore.isNotEmpty()) {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = RoundedCornerShape(6.dp),
-                                        modifier = Modifier.padding(bottom = 6.dp)
+                                // Badges Area with equal proportions (weight 1f each)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Text(
-                                            text = match.formattedScore,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = Color.Black,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                        )
+                                        if (match.homeTeamUrl.isNotBlank()) {
+                                            AsyncImage(
+                                                model = match.homeTeamUrl,
+                                                contentDescription = match.homeTeam,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.size(72.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = "VS",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 4.dp)
+                                    )
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        if (match.awayTeamUrl.isNotBlank()) {
+                                            AsyncImage(
+                                                model = match.awayTeamUrl,
+                                                contentDescription = match.awayTeam,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.size(72.dp)
+                                            )
+                                        }
                                     }
                                 }
 
-                                Text(
-                                    text = "${match.homeTeam} vs ${match.awayTeam}",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                // Bottom Portion: Team Names & Score perfectly centered and balanced
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.CenterEnd
+                                        ) {
+                                            Text(
+                                                text = match.homeTeam,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.End
+                                            )
+                                        }
 
-                                if (match.stadium.isNotBlank()) {
+                                        Text(
+                                            text = if (match.formattedScore.isNotEmpty()) match.formattedScore else "vs",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary, // Green color
+                                            modifier = Modifier.padding(horizontal = 12.dp),
+                                            textAlign = TextAlign.Center
+                                        )
+
+                                        Box(
+                                            modifier = Modifier.weight(1f),
+                                            contentAlignment = Alignment.CenterStart
+                                        ) {
+                                            Text(
+                                                text = match.awayTeam,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Start
+                                            )
+                                        }
+                                    }
+
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "📍 ${match.stadium}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (match.stadium.isNotBlank()) {
+                                            Text(
+                                                text = "${match.stadium}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        if (match.stadium.isNotBlank() && formattedDate.isNotBlank()) {
+                                            Text(
+                                                text = "  •  ",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        if (formattedDate.isNotBlank()) {
+                                            Text(
+                                                text = "$formattedDate",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

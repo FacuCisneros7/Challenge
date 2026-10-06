@@ -36,19 +36,67 @@ fun MatchCard(
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = match.imageUrl,
-                contentDescription = "${match.homeTeam} vs ${match.awayTeam}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            // Dark Stadium / Pitch Background Gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF1E293B),
+                                Color(0xFF0F172A),
+                                Color(0xFF020617)
+                            )
+                        )
+                    )
             )
+
+            // Team Badges Side-by-Side Area
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.6f)
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (match.homeTeamUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = match.homeTeamUrl,
+                        contentDescription = match.homeTeam,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .size(46.dp)
+                    )
+                }
+                Text(
+                    text = "vs",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold
+                )
+                if (match.awayTeamUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = match.awayTeamUrl,
+                        contentDescription = match.awayTeam,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .size(46.dp)
+                    )
+                }
+            }
+
+            // Dark gradient overlay at bottom
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.65f)
+                    .fillMaxHeight(0.55f)
                     .align(Alignment.BottomCenter)
                     .background(
                         Brush.verticalGradient(
@@ -60,6 +108,8 @@ fun MatchCard(
                         )
                     )
             )
+
+            // Overlaid content at bottom
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
