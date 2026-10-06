@@ -10,8 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import challengetecnico.shared.generated.resources.Res
+import challengetecnico.shared.generated.resources.busqueda
+import challengetecnico.shared.generated.resources.futbolista
 import org.example.challenge.ui.home.MatchCard
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SearchScreen(
@@ -35,7 +40,14 @@ fun SearchScreen(
                 value = query,
                 onValueChange = { viewModel.onQueryChanged(it) },
                 placeholder = { Text("Buscar equipo, liga o estadio...") },
-                leadingIcon = { Text("🔍") },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.busqueda),
+                        contentDescription = "Perfil",
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )

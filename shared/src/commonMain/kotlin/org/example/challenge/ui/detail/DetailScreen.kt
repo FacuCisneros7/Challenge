@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,12 +66,19 @@ fun DetailScreen(
                         },
                         navigationIcon = {
                             IconButton(onClick = onBackClick) {
-                                Text("⬅️")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
                             }
                         },
                         actions = {
                             IconButton(onClick = { viewModel.toggleFavorite() }) {
-                                Text(if (uiState.isFavorite) "❤️" else "🤍")
+                                Icon(
+                                    imageVector = if (uiState.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                    contentDescription = if (uiState.isFavorite) "Quitar de guardados" else "Guardar partido",
+                                    tint = if (uiState.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -173,23 +184,41 @@ fun DetailScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (uiState.reviews.isNotEmpty()) {
+                                            Text(
+                                                text = "⭐ ${kotlin.math.round(uiState.averageRating * 10) / 10.0}",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
                                         Text(
-                                            text = if (uiState.reviews.isNotEmpty()) "⭐ ${kotlin.math.round(uiState.averageRating * 10) / 10.0}" else "Sin puntuación",
-                                            style = MaterialTheme.typography.headlineSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "(${uiState.reviews.size} reseñas)",
-                                            style = MaterialTheme.typography.bodySmall,
+                                            text = "${uiState.reviews.size} reseñas",
+                                            style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
 
-                                Button(onClick = { viewModel.toggleFavorite() }) {
-                                    Text(if (uiState.isFavorite) "Guardado ❤️" else "Guardar 🤍")
+                                Button(
+                                    onClick = { viewModel.toggleFavorite() },
+                                    colors = if (uiState.isFavorite) {
+                                        ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    } else {
+                                        ButtonDefaults.buttonColors()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = if (uiState.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(if (uiState.isFavorite) "Guardado" else "Guardar")
                                 }
                             }
                         }
