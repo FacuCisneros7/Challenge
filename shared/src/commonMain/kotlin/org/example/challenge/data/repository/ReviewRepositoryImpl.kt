@@ -50,13 +50,19 @@ class ReviewRepositoryImpl : ReviewRepository {
         return try {
             val reviewId = review.id.ifBlank { "${review.userId}_${review.matchId}" }
             val now = Timestamp.now()
+            val createdTimestamp = if (review.createdAt.epochSeconds <= 0L) now else try {
+                Timestamp(review.createdAt.epochSeconds, review.createdAt.nanosecondsOfSecond)
+            } catch (e: Exception) {
+                now
+            }
+
             val data = mapOf(
                 "matchId" to review.matchId,
                 "userId" to review.userId,
                 "username" to review.username,
                 "rating" to review.rating,
                 "text" to review.text,
-                "createdAt" to Timestamp(review.createdAt.epochSeconds, review.createdAt.nanosecondsOfSecond),
+                "createdAt" to createdTimestamp,
                 "updatedAt" to now
             )
             firestore.collection("reviews").document(reviewId).set(data)

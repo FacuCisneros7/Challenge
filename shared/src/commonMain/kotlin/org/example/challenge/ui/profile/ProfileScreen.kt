@@ -27,6 +27,10 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadProfileData()
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -142,7 +146,6 @@ fun ProfileScreen(
                     )
                 }
 
-                // Tab Content
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                     when (selectedTab) {
                         0 -> {
@@ -223,7 +226,7 @@ fun ReviewItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Partido #${review.matchId.takeLast(4)}",
+                    text = "Id: #${review.matchId.takeLast(4)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

@@ -2,6 +2,7 @@ package org.example.challenge.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.example.challenge.domain.model.AppResult
@@ -34,6 +35,8 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+    private var observeFavoritesJob: Job? = null
+
     init {
         loadProfileData()
     }
@@ -42,7 +45,10 @@ class ProfileViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val userId = authRepository.currentUserId.firstOrNull() ?: ""
+            var userId = authRepository.currentUserId.firstOrNull() ?: ""
+            if (userId.isBlank()) {
+                userId = authRepository.currentUserId.firstOrNull() ?: ""
+            }
             if (userId.isBlank()) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "No hay usuario autenticado") }
                 return@launch
@@ -50,6 +56,7 @@ class ProfileViewModel(
 
             _uiState.update { it.copy(userId = userId) }
 
+            // Load User Profile
             when (val profileResult = userRepository.getProfile(userId)) {
                 is AppResult.Success -> {
                     val profile = profileResult.data
@@ -77,6 +84,7 @@ class ProfileViewModel(
                 }
             }
 
+            // Load User Reviews
             when (val reviewsResult = reviewRepository.getReviewsByUser(userId)) {
                 is AppResult.Success -> {
                     _uiState.update { it.copy(userReviews = reviewsResult.data) }
@@ -84,19 +92,22 @@ class ProfileViewModel(
                 is AppResult.Error -> {}
             }
 
-            userRepository.observeFavorites(userId).collect { favoriteIds ->
-                val matches = mutableListOf<Match>()
-                for (id in favoriteIds) {
-                    val matchResult = matchRepository.getMatch(id)
-                    if (matchResult is AppResult.Success && matchResult.data != null) {
-                        matches.add(matchResult.data)
+            _uiState.update { it.copy(isLoading = false) }
+
+            // Observe Favorites asynchronously in a separate coroutine
+            observeFavoritesJob?.cancel()
+            observeFavoritesJob = viewModelScope.launch {
+                userRepository.observeFavorites(userId).collect { favoriteIds ->
+                    val matches = mutableListOf<Match>()
+                    for (id in favoriteIds) {
+                        val matchResult = matchRepository.getMatch(id)
+                        if (matchResult is AppResult.Success && matchResult.data != null) {
+                            matches.add(matchResult.data)
+                        }
                     }
-                }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        favoriteMatches = matches
-                    )
+                    _uiState.update {
+                        it.copy(favoriteMatches = matches)
+                    }
                 }
             }
         }

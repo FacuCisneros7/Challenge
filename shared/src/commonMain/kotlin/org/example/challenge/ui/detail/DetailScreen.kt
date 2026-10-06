@@ -205,6 +205,15 @@ fun DetailScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
 
+                            if (uiState.errorMessage != null) {
+                                Text(
+                                    text = uiState.errorMessage!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
+
                             if (uiState.userReview != null && !isEditingReview) {
                                 Card(
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),

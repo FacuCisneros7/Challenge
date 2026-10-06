@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Match
@@ -114,14 +113,20 @@ class DetailViewModel(
 
     fun saveReview(rating: Int, text: String) {
         viewModelScope.launch {
-            val userId = _uiState.value.currentUserId
+            var userId = _uiState.value.currentUserId
+            if (userId.isBlank()) {
+                userId = authRepository.currentUserId.firstOrNull() ?: ""
+            }
+            if (userId.isBlank()) {
+                _uiState.update { it.copy(errorMessage = "Debes iniciar sesión para publicar una reseña") }
+                return@launch
+            }
+
+            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+
             val username = _uiState.value.currentUsername.ifBlank { "Usuario" }
-            if (userId.isBlank()) return@launch
-
-            _uiState.update { it.copy(isSubmitting = true) }
-
             val existingReview = _uiState.value.userReview
-            val now = Instant.DISTANT_FUTURE // placeholder or epoch millis
+
             val reviewToSave = Review(
                 id = existingReview?.id ?: "${userId}_$matchId",
                 matchId = matchId,
@@ -129,8 +134,8 @@ class DetailViewModel(
                 username = username,
                 rating = rating,
                 text = text.trim(),
-                createdAt = existingReview?.createdAt ?: now,
-                updatedAt = now
+                createdAt = existingReview?.createdAt ?: Instant.DISTANT_PAST,
+                updatedAt = Instant.DISTANT_PAST
             )
 
             when (val result = reviewRepository.saveReview(reviewToSave)) {
