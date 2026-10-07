@@ -9,7 +9,8 @@ data class UserProfile(
     val createdAt: Instant,
     val favorites: List<String> = emptyList(),
     val followers: List<UserProfile> = emptyList(),
-    val following: List<UserProfile> = emptyList()
+    val following: List<UserProfile> = emptyList(),
+    val isDarkMode: Boolean = true
 ) {
     val followersCount: Int get() = followers.size
     val followingCount: Int get() = following.size

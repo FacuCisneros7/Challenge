@@ -23,6 +23,7 @@ data class ProfileUiState(
     val userId: String = "",
     val username: String = "",
     val bio: String = "",
+    val isDarkMode: Boolean = true,
     val followers: List<UserProfile> = emptyList(),
     val following: List<UserProfile> = emptyList(),
     val userReviews: List<Review> = emptyList(),
@@ -82,6 +83,7 @@ class ProfileViewModel(
                             it.copy(
                                 username = profile.username.ifBlank { "Usuario" },
                                 bio = profile.bio.ifBlank { "Sin biografía" },
+                                isDarkMode = profile.isDarkMode,
                                 followers = profile.followers,
                                 following = profile.following
                             )
@@ -94,6 +96,7 @@ class ProfileViewModel(
                             it.copy(
                                 username = defaultName,
                                 bio = defaultBio,
+                                isDarkMode = true,
                                 followers = emptyList(),
                                 following = emptyList()
                             )
@@ -148,6 +151,16 @@ class ProfileViewModel(
                         it.copy(favoriteMatches = matches)
                     }
                 }
+            }
+        }
+    }
+
+    fun toggleDarkMode(isDarkMode: Boolean) {
+        viewModelScope.launch {
+            val userId = _uiState.value.userId
+            if (userId.isNotBlank()) {
+                _uiState.update { it.copy(isDarkMode = isDarkMode) }
+                userRepository.updateThemePreference(userId, isDarkMode)
             }
         }
     }

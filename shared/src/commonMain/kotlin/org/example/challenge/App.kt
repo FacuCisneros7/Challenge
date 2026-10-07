@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
 import org.example.challenge.data.remote.DatabaseSeeder
+import org.example.challenge.domain.repository.UserRepository
 import org.example.challenge.ui.auth.AuthViewModel
 import org.example.challenge.ui.auth.LoginScreen
 import org.example.challenge.ui.auth.RegisterScreen
@@ -44,15 +45,10 @@ import org.koin.core.parameter.parametersOf
 @Composable
 @Preview
 fun App() {
+    val userRepository: UserRepository = koinInject()
+    val isDarkMode by userRepository.isDarkMode.collectAsState()
 
-    //----Lo usé para cargar los documentos en firestore------
-
-//    val seeder: DatabaseSeeder = koinInject()
-//    LaunchedEffect(Unit) {
-//        seeder.seedIfEmpty()
-//    }
-
-    FutbolboxdTheme {
+    FutbolboxdTheme(darkTheme = isDarkMode) {
         val authViewModel: AuthViewModel = koinViewModel()
         val currentUserIdState by authViewModel.currentUserId.collectAsState()
         var isAuthChecking by remember { mutableStateOf(true) }

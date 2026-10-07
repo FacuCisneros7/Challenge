@@ -4,6 +4,9 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.Timestamp
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import kotlinx.serialization.builtins.nullable
@@ -15,6 +18,9 @@ import org.example.challenge.domain.repository.UserRepository
 class UserRepositoryImpl : UserRepository {
     private val firestore = Firebase.firestore
 
+    private val _isDarkMode = MutableStateFlow(true)
+    override val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
     override suspend fun getProfile(userId: String): AppResult<UserProfile?> {
         return try {
             val doc = firestore.collection("users").document(userId).get()
@@ -22,16 +28,12 @@ class UserRepositoryImpl : UserRepository {
                 return AppResult.Success(null)
             }
             val createdTs = doc.get("createdAt", Timestamp.serializer().nullable)
-            val createdInstant =
-                createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
-                    ?: Instant.DISTANT_PAST
+            val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
 
-            val favSnapshot =
-                firestore.collection("users").document(userId).collection("favorites").get()
+            val favSnapshot = firestore.collection("users").document(userId).collection("favorites").get()
             val favorites = favSnapshot.documents.map { it.id }
 
-            val followersSnapshot =
-                firestore.collection("users").document(userId).collection("followers").get()
+            val followersSnapshot = firestore.collection("users").document(userId).collection("followers").get()
             val followers = followersSnapshot.documents.map { docItem ->
                 UserProfile(
                     userId = docItem.id,
@@ -41,8 +43,7 @@ class UserRepositoryImpl : UserRepository {
                 )
             }
 
-            val followingSnapshot =
-                firestore.collection("users").document(userId).collection("following").get()
+            val followingSnapshot = firestore.collection("users").document(userId).collection("following").get()
             val following = followingSnapshot.documents.map { docItem ->
                 UserProfile(
                     userId = docItem.id,
@@ -52,6 +53,9 @@ class UserRepositoryImpl : UserRepository {
                 )
             }
 
+            val isDarkModeVal = doc.get("isDarkMode", Boolean.serializer().nullable) ?: true
+            _isDarkMode.value = isDarkModeVal
+
             val profile = UserProfile(
                 userId = userId,
                 username = doc.get("username", String.serializer().nullable) ?: "",
@@ -59,7 +63,8 @@ class UserRepositoryImpl : UserRepository {
                 createdAt = createdInstant,
                 favorites = favorites,
                 followers = followers,
-                following = following
+                following = following,
+                isDarkMode = isDarkModeVal
             )
             AppResult.Success(profile)
         } catch (e: Exception) {
@@ -67,11 +72,7 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override suspend fun updateProfile(
-        userId: String,
-        username: String,
-        bio: String
-    ): AppResult<Unit> {
+    override suspend fun updateProfile(userId: String, username: String, bio: String): AppResult<Unit> {
         return try {
             val ref = firestore.collection("users").document(userId)
             val doc = ref.get()
@@ -82,6 +83,7 @@ class UserRepositoryImpl : UserRepository {
             )
             if (!doc.exists) {
                 data["createdAt"] = now
+                data["isDarkMode"] = true
                 ref.set(data)
             } else {
                 ref.update(data)
@@ -89,6 +91,23 @@ class UserRepositoryImpl : UserRepository {
             AppResult.Success(Unit)
         } catch (e: Exception) {
             AppResult.Error(e.message ?: "Error al actualizar el perfil", e)
+        }
+    }
+
+    override suspend fun updateThemePreference(userId: String, isDarkMode: Boolean): AppResult<Unit> {
+        return try {
+            _isDarkMode.value = isDarkMode
+            val ref = firestore.collection("users").document(userId)
+            val doc = ref.get()
+            if (!doc.exists) {
+                val data = mapOf("isDarkMode" to isDarkMode, "createdAt" to Timestamp.now())
+                ref.set(data)
+            } else {
+                ref.update(mapOf("isDarkMode" to isDarkMode))
+            }
+            AppResult.Success(Unit)
+        } catch (e: Exception) {
+            AppResult.Error(e.message ?: "Error al actualizar preferencia de tema", e)
         }
     }
 
@@ -102,8 +121,7 @@ class UserRepositoryImpl : UserRepository {
 
     override suspend fun toggleFavorite(userId: String, matchId: String): AppResult<Unit> {
         return try {
-            val favRef = firestore.collection("users").document(userId).collection("favorites")
-                .document(matchId)
+            val favRef = firestore.collection("users").document(userId).collection("favorites").document(matchId)
             val doc = favRef.get()
             val now = Timestamp.now()
             if (doc.exists) {
@@ -148,19 +166,10 @@ class UserRepositoryImpl : UserRepository {
             }
     }
 
-    override suspend fun toggleFollow(
-        currentUserId: String,
-        currentUsername: String,
-        targetUserId: String,
-        targetUsername: String
-    ): AppResult<Unit> {
+    override suspend fun toggleFollow(currentUserId: String, currentUsername: String, targetUserId: String, targetUsername: String): AppResult<Unit> {
         return try {
-            val followerRef =
-                firestore.collection("users").document(targetUserId).collection("followers")
-                    .document(currentUserId)
-            val followingRef =
-                firestore.collection("users").document(currentUserId).collection("following")
-                    .document(targetUserId)
+            val followerRef = firestore.collection("users").document(targetUserId).collection("followers").document(currentUserId)
+            val followingRef = firestore.collection("users").document(currentUserId).collection("following").document(targetUserId)
 
             val isFollowing = followerRef.get().exists
             val now = Timestamp.now()
@@ -169,16 +178,8 @@ class UserRepositoryImpl : UserRepository {
                 followerRef.delete()
                 followingRef.delete()
             } else {
-                val followerData = mapOf(
-                    "userId" to currentUserId,
-                    "username" to currentUsername,
-                    "followedAt" to now
-                )
-                val followingData = mapOf(
-                    "userId" to targetUserId,
-                    "username" to targetUsername,
-                    "followedAt" to now
-                )
+                val followerData = mapOf("userId" to currentUserId, "username" to currentUsername, "followedAt" to now)
+                val followingData = mapOf("userId" to targetUserId, "username" to targetUsername, "followedAt" to now)
 
                 followerRef.set(followerData)
                 followingRef.set(followingData)

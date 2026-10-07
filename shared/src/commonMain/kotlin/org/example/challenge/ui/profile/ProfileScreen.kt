@@ -134,6 +134,29 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Dark Mode Switch Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Modo Oscuro",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Switch(
+                            checked = uiState.isDarkMode,
+                            onCheckedChange = {
+                                viewModel.toggleDarkMode(it)
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     // Action buttons
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -349,14 +372,14 @@ fun ReviewItemCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (formattedDate.isNotBlank()) "$formattedDate" else "Reseña",
+                    text = if (formattedDate.isNotBlank()) "📅 $formattedDate" else "Reseña",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold

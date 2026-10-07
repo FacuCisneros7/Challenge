@@ -50,7 +50,6 @@ class AuthViewModel(
                     userRepository.updateProfile(uid, username, "Amante del fútbol ⚽")
                     onSuccess(uid)
                 }
-
                 is AppResult.Error -> onError(result.message)
             }
         }
