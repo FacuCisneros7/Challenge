@@ -22,7 +22,9 @@ class MatchRepositoryImpl : MatchRepository {
 
             val matches = snapshot.documents.map { doc ->
                 val timestamp = doc.get("date", Timestamp.serializer().nullable)
-                val instant = timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
+                val instant =
+                    timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
+                        ?: Instant.DISTANT_PAST
 
                 Match(
                     id = doc.id,
@@ -32,7 +34,8 @@ class MatchRepositoryImpl : MatchRepository {
                     awayTeamUrl = doc.get("awayTeamUrl", String.serializer().nullable) ?: "",
                     competition = doc.get("competition", String.serializer().nullable) ?: "",
                     date = instant,
-                    tags = doc.get("tags", ListSerializer(String.serializer()).nullable) ?: emptyList(),
+                    tags = doc.get("tags", ListSerializer(String.serializer()).nullable)
+                        ?: emptyList(),
                     stadium = doc.get("stadium", String.serializer().nullable) ?: "",
                     homeScore = doc.get("homeScore", Int.serializer().nullable),
                     awayScore = doc.get("awayScore", Int.serializer().nullable)
@@ -51,7 +54,8 @@ class MatchRepositoryImpl : MatchRepository {
                 return AppResult.Success(null)
             }
             val timestamp = doc.get("date", Timestamp.serializer().nullable)
-            val instant = timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
+            val instant = timestamp?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
+                ?: Instant.DISTANT_PAST
 
             val match = Match(
                 id = doc.id,

@@ -3,7 +3,11 @@ package org.example.challenge.ui.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import org.example.challenge.domain.model.AppResult
@@ -73,6 +77,7 @@ class DetailViewModel(
                 is AppResult.Success -> {
                     _uiState.update { it.copy(match = matchResult.data) }
                 }
+
                 is AppResult.Error -> {
                     _uiState.update { it.copy(errorMessage = matchResult.message) }
                 }
@@ -111,6 +116,7 @@ class DetailViewModel(
                     )
                 }
             }
+
             is AppResult.Error -> {}
         }
     }
@@ -130,7 +136,12 @@ class DetailViewModel(
             val currentUsername = _uiState.value.currentUsername.ifBlank { "Usuario" }
             if (currentUserId.isBlank() || currentUserId == targetUserId) return@launch
 
-            userRepository.toggleFollow(currentUserId, currentUsername, targetUserId, targetUsername)
+            userRepository.toggleFollow(
+                currentUserId,
+                currentUsername,
+                targetUserId,
+                targetUsername
+            )
         }
     }
 
@@ -166,6 +177,7 @@ class DetailViewModel(
                     _uiState.update { it.copy(isSubmitting = false) }
                     loadReviews()
                 }
+
                 is AppResult.Error -> {
                     _uiState.update { it.copy(isSubmitting = false, errorMessage = result.message) }
                 }
@@ -181,6 +193,7 @@ class DetailViewModel(
                     _uiState.update { it.copy(isSubmitting = false) }
                     loadReviews()
                 }
+
                 is AppResult.Error -> {
                     _uiState.update { it.copy(isSubmitting = false) }
                 }

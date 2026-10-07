@@ -14,7 +14,11 @@ class AuthRepositoryImpl : AuthRepository {
         emit(firebaseAuth.currentUser?.uid)
     }
 
-    override suspend fun signUp(email: String, password: String, username: String): AppResult<String> {
+    override suspend fun signUp(
+        email: String,
+        password: String,
+        username: String
+    ): AppResult<String> {
         return try {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password)
             val user = authResult.user
@@ -39,8 +43,19 @@ class AuthRepositoryImpl : AuthRepository {
             }
         } catch (e: Exception) {
             val message = when {
-                e.message?.contains("no user record", ignoreCase = true) == true -> "El usuario no existe."
-                e.message?.contains("password", ignoreCase = true) == true || e.message?.contains("credential", ignoreCase = true) == true -> "Email o contraseña incorrectos."
+                e.message?.contains(
+                    "no user record",
+                    ignoreCase = true
+                ) == true -> "El usuario no existe."
+
+                e.message?.contains(
+                    "password",
+                    ignoreCase = true
+                ) == true || e.message?.contains(
+                    "credential",
+                    ignoreCase = true
+                ) == true -> "Email o contraseña incorrectos."
+
                 else -> e.message ?: "Error al iniciar sesión"
             }
             AppResult.Error(message, e)

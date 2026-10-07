@@ -3,7 +3,11 @@ package org.example.challenge.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Match
@@ -56,7 +60,11 @@ class UserProfileDetailViewModel(
             if (currentUserId.isNotBlank()) {
                 val currentProfile = userRepository.getProfile(currentUserId)
                 if (currentProfile is AppResult.Success) {
-                    _uiState.update { it.copy(currentUsername = currentProfile.data?.username ?: "Usuario") }
+                    _uiState.update {
+                        it.copy(
+                            currentUsername = currentProfile.data?.username ?: "Usuario"
+                        )
+                    }
                 }
             }
 
@@ -76,6 +84,7 @@ class UserProfileDetailViewModel(
                         }
                     }
                 }
+
                 is AppResult.Error -> {
                     _uiState.update { it.copy(errorMessage = profileResult.message) }
                 }
@@ -86,6 +95,7 @@ class UserProfileDetailViewModel(
                 is AppResult.Success -> {
                     _uiState.update { it.copy(userReviews = reviewsResult.data) }
                 }
+
                 is AppResult.Error -> {}
             }
 

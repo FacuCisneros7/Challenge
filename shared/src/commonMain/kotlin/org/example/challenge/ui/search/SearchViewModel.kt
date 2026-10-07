@@ -70,9 +70,9 @@ class SearchViewModel(
             val queryLower = q.trim().lowercase()
             _searchResults.value = _allMatches.filter { match ->
                 match.homeTeam.lowercase().contains(queryLower) ||
-                match.awayTeam.lowercase().contains(queryLower) ||
-                match.competition.lowercase().contains(queryLower) ||
-                match.stadium.lowercase().contains(queryLower)
+                        match.awayTeam.lowercase().contains(queryLower) ||
+                        match.competition.lowercase().contains(queryLower) ||
+                        match.stadium.lowercase().contains(queryLower)
             }
         }
     }

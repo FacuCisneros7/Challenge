@@ -34,7 +34,15 @@ val appModule: Module = module {
     factory { SearchViewModel(get()) }
     factory { ProfileViewModel(get(), get(), get(), get()) }
     factory { (matchId: String) -> DetailViewModel(matchId, get(), get(), get(), get()) }
-    factory { (targetUserId: String) -> UserProfileDetailViewModel(targetUserId, get(), get(), get(), get()) }
+    factory { (targetUserId: String) ->
+        UserProfileDetailViewModel(
+            targetUserId,
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) {

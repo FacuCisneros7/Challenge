@@ -20,5 +20,10 @@ interface UserRepository {
 
     fun observeFollowing(userId: String): Flow<List<UserProfile>>
 
-    suspend fun toggleFollow(currentUserId: String, currentUsername: String, targetUserId: String, targetUsername: String): AppResult<Unit>
+    suspend fun toggleFollow(
+        currentUserId: String,
+        currentUsername: String,
+        targetUserId: String,
+        targetUsername: String
+    ): AppResult<Unit>
 }

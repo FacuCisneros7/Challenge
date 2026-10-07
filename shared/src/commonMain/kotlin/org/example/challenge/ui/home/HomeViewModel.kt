@@ -58,6 +58,7 @@ class HomeViewModel(
                             rows.add(HomeRow(title, tag, result.data))
                         }
                     }
+
                     is AppResult.Error -> {
                         errorMessage = result.message
                     }

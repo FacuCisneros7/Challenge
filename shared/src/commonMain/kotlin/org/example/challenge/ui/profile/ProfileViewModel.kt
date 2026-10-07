@@ -3,7 +3,11 @@ package org.example.challenge.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.example.challenge.domain.model.AppResult
 import org.example.challenge.domain.model.Match
@@ -58,7 +62,12 @@ class ProfileViewModel(
                 userId = authRepository.currentUserId.firstOrNull() ?: ""
             }
             if (userId.isBlank()) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "No hay usuario autenticado") }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "No hay usuario autenticado"
+                    )
+                }
                 return@launch
             }
 
@@ -91,6 +100,7 @@ class ProfileViewModel(
                         }
                     }
                 }
+
                 is AppResult.Error -> {
                     _uiState.update { it.copy(errorMessage = profileResult.message) }
                 }
@@ -101,6 +111,7 @@ class ProfileViewModel(
                 is AppResult.Success -> {
                     _uiState.update { it.copy(userReviews = reviewsResult.data) }
                 }
+
                 is AppResult.Error -> {}
             }
 
@@ -156,7 +167,8 @@ class ProfileViewModel(
 
             _uiState.update { it.copy(isUpdating = true) }
 
-            when (val result = userRepository.updateProfile(userId, newUsername.trim(), newBio.trim())) {
+            when (val result =
+                userRepository.updateProfile(userId, newUsername.trim(), newBio.trim())) {
                 is AppResult.Success -> {
                     _uiState.update {
                         it.copy(
@@ -167,6 +179,7 @@ class ProfileViewModel(
                         )
                     }
                 }
+
                 is AppResult.Error -> {
                     _uiState.update {
                         it.copy(

@@ -22,12 +22,16 @@ class UserRepositoryImpl : UserRepository {
                 return AppResult.Success(null)
             }
             val createdTs = doc.get("createdAt", Timestamp.serializer().nullable)
-            val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
+            val createdInstant =
+                createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
+                    ?: Instant.DISTANT_PAST
 
-            val favSnapshot = firestore.collection("users").document(userId).collection("favorites").get()
+            val favSnapshot =
+                firestore.collection("users").document(userId).collection("favorites").get()
             val favorites = favSnapshot.documents.map { it.id }
 
-            val followersSnapshot = firestore.collection("users").document(userId).collection("followers").get()
+            val followersSnapshot =
+                firestore.collection("users").document(userId).collection("followers").get()
             val followers = followersSnapshot.documents.map { docItem ->
                 UserProfile(
                     userId = docItem.id,
@@ -37,7 +41,8 @@ class UserRepositoryImpl : UserRepository {
                 )
             }
 
-            val followingSnapshot = firestore.collection("users").document(userId).collection("following").get()
+            val followingSnapshot =
+                firestore.collection("users").document(userId).collection("following").get()
             val following = followingSnapshot.documents.map { docItem ->
                 UserProfile(
                     userId = docItem.id,
@@ -62,7 +67,11 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    override suspend fun updateProfile(userId: String, username: String, bio: String): AppResult<Unit> {
+    override suspend fun updateProfile(
+        userId: String,
+        username: String,
+        bio: String
+    ): AppResult<Unit> {
         return try {
             val ref = firestore.collection("users").document(userId)
             val doc = ref.get()
@@ -93,7 +102,8 @@ class UserRepositoryImpl : UserRepository {
 
     override suspend fun toggleFavorite(userId: String, matchId: String): AppResult<Unit> {
         return try {
-            val favRef = firestore.collection("users").document(userId).collection("favorites").document(matchId)
+            val favRef = firestore.collection("users").document(userId).collection("favorites")
+                .document(matchId)
             val doc = favRef.get()
             val now = Timestamp.now()
             if (doc.exists) {
@@ -138,10 +148,19 @@ class UserRepositoryImpl : UserRepository {
             }
     }
 
-    override suspend fun toggleFollow(currentUserId: String, currentUsername: String, targetUserId: String, targetUsername: String): AppResult<Unit> {
+    override suspend fun toggleFollow(
+        currentUserId: String,
+        currentUsername: String,
+        targetUserId: String,
+        targetUsername: String
+    ): AppResult<Unit> {
         return try {
-            val followerRef = firestore.collection("users").document(targetUserId).collection("followers").document(currentUserId)
-            val followingRef = firestore.collection("users").document(currentUserId).collection("following").document(targetUserId)
+            val followerRef =
+                firestore.collection("users").document(targetUserId).collection("followers")
+                    .document(currentUserId)
+            val followingRef =
+                firestore.collection("users").document(currentUserId).collection("following")
+                    .document(targetUserId)
 
             val isFollowing = followerRef.get().exists
             val now = Timestamp.now()
@@ -150,8 +169,16 @@ class UserRepositoryImpl : UserRepository {
                 followerRef.delete()
                 followingRef.delete()
             } else {
-                val followerData = mapOf("userId" to currentUserId, "username" to currentUsername, "followedAt" to now)
-                val followingData = mapOf("userId" to targetUserId, "username" to targetUsername, "followedAt" to now)
+                val followerData = mapOf(
+                    "userId" to currentUserId,
+                    "username" to currentUsername,
+                    "followedAt" to now
+                )
+                val followingData = mapOf(
+                    "userId" to targetUserId,
+                    "username" to targetUsername,
+                    "followedAt" to now
+                )
 
                 followerRef.set(followerData)
                 followingRef.set(followingData)

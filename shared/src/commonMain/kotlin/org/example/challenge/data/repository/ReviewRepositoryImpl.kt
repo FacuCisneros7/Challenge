@@ -84,7 +84,8 @@ class ReviewRepositoryImpl : ReviewRepository {
     private fun mapDocumentToReview(doc: DocumentSnapshot): Review {
         val createdTs = doc.get("createdAt", Timestamp.serializer().nullable)
         val updatedTs = doc.get("updatedAt", Timestamp.serializer().nullable)
-        val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) } ?: Instant.DISTANT_PAST
+        val createdInstant = createdTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
+            ?: Instant.DISTANT_PAST
         val updatedInstant = updatedTs?.let { Instant.fromEpochSeconds(it.seconds, it.nanoseconds) }
 
         val ratingVal = doc.get("rating", Int.serializer().nullable) ?: 0
