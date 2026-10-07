@@ -23,6 +23,9 @@ class SearchViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private val _allMatches = mutableListOf<Match>()
 
     init {
@@ -42,8 +45,16 @@ class SearchViewModel(
             }
             _allMatches.clear()
             _allMatches.addAll(loaded)
-            _searchResults.value = _allMatches
+            filterMatches(_query.value)
             _isLoading.value = false
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            loadInitialMatches()
+            _isRefreshing.value = false
         }
     }
 

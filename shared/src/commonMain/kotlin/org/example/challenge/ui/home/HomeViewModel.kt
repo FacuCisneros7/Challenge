@@ -29,18 +29,23 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         loadHomeData()
     }
 
     fun loadHomeData() {
         viewModelScope.launch {
-            _uiState.value = HomeUiState.Loading
+            if (_uiState.value !is HomeUiState.Success) {
+                _uiState.value = HomeUiState.Loading
+            }
 
             val categories = listOf(
                 "Partidos de la Semana" to "week",
                 "Premier League" to "premier",
-                "Liga Argentina" to "argentina"
+                "Fútbol Argentino" to "argentina"
             )
 
             val rows = mutableListOf<HomeRow>()
@@ -66,6 +71,14 @@ class HomeViewModel(
             } else {
                 _uiState.value = HomeUiState.Success(emptyList())
             }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            loadHomeData()
+            _isRefreshing.value = false
         }
     }
 }
