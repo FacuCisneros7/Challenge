@@ -142,7 +142,7 @@ challenge/
 
 ## 7. Documentación adicional
 
-- [Especificación de requisitos (SRS)](docs/SRS.md)
+- [Especificación de requisitos (SRS)](SRS_Futbolboxd.md)
 
 
 ## Stack
