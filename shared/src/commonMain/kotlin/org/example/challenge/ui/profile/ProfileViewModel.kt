@@ -46,6 +46,9 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private var observeFavoritesJob: Job? = null
     private var observeFollowersJob: Job? = null
     private var observeFollowingJob: Job? = null
@@ -56,7 +59,9 @@ class ProfileViewModel(
 
     fun loadProfileData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            if (_uiState.value.userId.isBlank()) {
+                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            }
 
             var userId = authRepository.currentUserId.firstOrNull() ?: ""
             if (userId.isBlank()) {
@@ -152,6 +157,14 @@ class ProfileViewModel(
                     }
                 }
             }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            loadProfileData()
+            _isRefreshing.value = false
         }
     }
 

@@ -3,12 +3,12 @@ package org.example.challenge.ui.profile
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,176 +30,192 @@ fun ProfileScreen(
     onUserClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
     var activeFollowDialogTitle by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(Unit) {
-        viewModel.loadProfileData()
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Header Info
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (uiState.isLoading && !isRefreshing) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 24.dp)
                 ) {
-                    Surface(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(CircleShape),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = uiState.username.take(1).uppercase(),
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = uiState.username,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        text = uiState.bio,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Stats row: Seguidores & Seguidos (Clickable)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { activeFollowDialogTitle = "Seguidores" }
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "${uiState.followersCount}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Seguidores",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { activeFollowDialogTitle = "Seguidos" }
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "${uiState.followingCount}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Seguidos",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Dark Mode Switch Row
-                    Row(
+                    // Header Info
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "Modo Oscuro",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Switch(
-                            checked = uiState.isDarkMode,
-                            onCheckedChange = {
-                                viewModel.toggleDarkMode(it)
-                            }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Action buttons
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(onClick = { viewModel.openEditDialog() }) {
-                            Text("Editar Perfil")
-                        }
-                        Button(
-                            onClick = { viewModel.signOut(onSignOut) },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        Surface(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape),
+                            color = MaterialTheme.colorScheme.primaryContainer
                         ) {
-                            Text("Cerrar Sesión")
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = uiState.username.take(1).uppercase(),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = uiState.username,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = uiState.bio,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Stats row: Seguidores & Seguidos (Clickable)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { activeFollowDialogTitle = "Seguidores" }
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "${uiState.followersCount}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Seguidores",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { activeFollowDialogTitle = "Seguidos" }
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "${uiState.followingCount}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Seguidos",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Dark Mode Switch Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Modo Oscuro",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Switch(
+                                checked = uiState.isDarkMode,
+                                onCheckedChange = {
+                                    viewModel.toggleDarkMode(it)
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Action buttons
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedButton(onClick = { viewModel.openEditDialog() }) {
+                                Text("Editar Perfil")
+                            }
+                            Button(
+                                onClick = { viewModel.signOut(onSignOut) },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Text("Cerrar Sesión")
+                            }
                         }
                     }
-                }
 
-                // Tab Row
-                TabRow(selectedTabIndex = selectedTab) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("Mis Reseñas (${uiState.userReviews.size})") }
-                    )
-                    Tab(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        text = { Text("Guardados (${uiState.favoriteMatches.size})") }
-                    )
-                }
+                    // Tab Row
+                    TabRow(selectedTabIndex = selectedTab) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("Mis Reseñas (${uiState.userReviews.size})") }
+                        )
+                        Tab(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            text = { Text("Guardados (${uiState.favoriteMatches.size})") }
+                        )
+                    }
 
-                Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    when (selectedTab) {
-                        0 -> {
-                            if (uiState.userReviews.isEmpty()) {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("Aún no escribiste reseñas", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            } else {
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    items(uiState.userReviews) { review ->
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Tab Content (Scrollable Column)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        when (selectedTab) {
+                            0 -> {
+                                if (uiState.userReviews.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(120.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Aún no escribiste reseñas", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                } else {
+                                    uiState.userReviews.forEach { review ->
                                         ReviewItemCard(
                                             review = review,
                                             onClick = { onMatchClick(review.matchId) }
@@ -207,25 +223,35 @@ fun ProfileScreen(
                                     }
                                 }
                             }
-                        }
-                        1 -> {
-                            if (uiState.favoriteMatches.isEmpty()) {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("Aún no guardaste partidos", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            } else {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    items(uiState.favoriteMatches) { match ->
-                                        MatchCard(
-                                            match = match,
-                                            onClick = { onMatchClick(match.id) },
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
+                            1 -> {
+                                if (uiState.favoriteMatches.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(120.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Aún no guardaste partidos", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                } else {
+                                    uiState.favoriteMatches.chunked(2).forEach { rowMatches ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            rowMatches.forEach { match ->
+                                                Box(modifier = Modifier.weight(1f)) {
+                                                    MatchCard(
+                                                        match = match,
+                                                        onClick = { onMatchClick(match.id) },
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    )
+                                                }
+                                            }
+                                            if (rowMatches.size == 1) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -417,7 +443,7 @@ fun EditProfileDialog(
         onDismissRequest = onDismiss,
         title = { Text("Editar Perfil") },
         text = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
