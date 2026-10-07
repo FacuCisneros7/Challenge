@@ -110,7 +110,7 @@ fun DetailScreen(
                         .fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
-                    // Match Hero Header (Two Badges Layout with Centered Balanced Proportions & Date)
+                    // Match Hero Header (Two Badges Layout with Left-Aligned Details)
                     item {
                         Box(
                             modifier = Modifier
@@ -131,7 +131,7 @@ fun DetailScreen(
                                     .fillMaxSize()
                                     .padding(16.dp),
                                 verticalArrangement = Arrangement.SpaceBetween,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.Start
                             ) {
                                 // Badges Area with equal proportions (weight 1f each)
                                 Row(
@@ -178,58 +178,44 @@ fun DetailScreen(
                                     }
                                 }
 
-                                // Bottom Portion: Team Names & Score perfectly centered and balanced
+                                // Bottom Portion: Team Names, Score, Stadium & Date aligned to the Left
                                 Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    horizontalAlignment = Alignment.Start,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.Center,
+                                        horizontalArrangement = Arrangement.Start,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Box(
-                                            modifier = Modifier.weight(1f),
-                                            contentAlignment = Alignment.CenterEnd
-                                        ) {
-                                            Text(
-                                                text = match.homeTeam,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White,
-                                                maxLines = 1,
-                                                textAlign = TextAlign.End
-                                            )
-                                        }
-
+                                        Text(
+                                            text = match.homeTeam,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = if (match.formattedScore.isNotEmpty()) match.formattedScore else "vs",
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary, // Green color
-                                            modifier = Modifier.padding(horizontal = 12.dp),
-                                            textAlign = TextAlign.Center
+                                            color = MaterialTheme.colorScheme.primary
                                         )
-
-                                        Box(
-                                            modifier = Modifier.weight(1f),
-                                            contentAlignment = Alignment.CenterStart
-                                        ) {
-                                            Text(
-                                                text = match.awayTeam,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White,
-                                                maxLines = 1,
-                                                textAlign = TextAlign.Start
-                                            )
-                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = match.awayTeam,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
                                     }
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
                                     Row(
-                                        horizontalArrangement = Arrangement.Center,
+                                        horizontalArrangement = Arrangement.Start,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (match.stadium.isNotBlank()) {
