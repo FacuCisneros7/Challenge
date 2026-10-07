@@ -44,10 +44,13 @@ import org.koin.core.parameter.parametersOf
 @Composable
 @Preview
 fun App() {
-    val seeder: DatabaseSeeder = koinInject()
-    LaunchedEffect(Unit) {
-        seeder.seedIfEmpty()
-    }
+
+    //----Lo usé para cargar los documentos en firestore------
+
+//    val seeder: DatabaseSeeder = koinInject()
+//    LaunchedEffect(Unit) {
+//        seeder.seedIfEmpty()
+//    }
 
     FutbolboxdTheme {
         val authViewModel: AuthViewModel = koinViewModel()
