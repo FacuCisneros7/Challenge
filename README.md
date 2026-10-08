@@ -73,7 +73,6 @@ Cada cambio se revisó en el diff, se compiló y se probó en el emulador antes 
 - **Versiones de librerías:** verifiqué la consistencia entre Navigation, Lifecycle y Compose Multiplatform antes de aceptar la propuesta.
 - **Recursos:** detecté código con `R.drawable` (solo Android) y lo reemplacé por `Res` de Compose Multiplatform, compatible con `commonMain`.
 - **Windows:** una ruta con caracteres no ASCII rompía el build de Kotlin/Native; moví el proyecto a una ruta simple.
-- **[COMPLETAR]** Agregá 1 o 2 problemas más que hayas encontrado (por ejemplo, errores de recomposición, de reglas de Firestore o de estados).
 
 ## 4. Decisiones técnicas y limitaciones
 
@@ -95,20 +94,15 @@ Cada cambio se revisó en el diff, se compiló y se probó en el emulador antes 
 ## 5. Cómo compilar y correr el proyecto
 
 ### Requisitos
-- **Android Studio** reciente con soporte para Kotlin Multiplatform. *[COMPLETAR: la versión mínima que exige el AGP del proyecto]*
+- **Android Studio** reciente con soporte para Kotlin Multiplatform.
 - **JDK 17** o superior.
 - Un emulador Android o un dispositivo físico con **Android 7.0 (API 24) o superior**.
-- **Windows:** la ruta del proyecto no debe tener tildes ni caracteres especiales (Kotlin/Native falla con rutas no ASCII). Ejemplo válido: `C:\dev\challenge`.
 
 ### Pasos (Android)
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/<usuario>/challenge.git
-   ```
-2. Abrirlo en Android Studio y esperar a que termine el **Gradle Sync**. La primera vez descarga varias dependencias y puede tardar.
-3. **Firebase:** el archivo `androidApp/google-services.json` **[COMPLETAR: "ya está incluido en el repo, no hace falta configurar nada" o explicá cómo usar un proyecto propio]**.
-4. Seleccionar la configuración `androidApp` y presionar **Run**.
-5. Al primer arranque se cargan automáticamente los 40 partidos de prueba. Para usar la app, registrá una cuenta nueva.
+1. Clonar el repositorio.
+2. Abrirlo en Android Studio y esperar a que termine el **Gradle Sync**.
+3. Seleccionar la configuración `androidApp` y presionar **Run**.
+4. Al primer arranque se cargan automáticamente los 40 partidos de prueba. Para usar la app, registrá una cuenta nueva.
 
 ### Generar el APK
 ```bash
@@ -116,19 +110,23 @@ Cada cambio se revisó en el diff, se compiló y se probó en el emulador antes 
 ```
 El archivo queda en `androidApp/build/outputs/apk/debug/`.
 
+### Tests Unitarios
+Para ejecutar las pruebas unitarias (que validan la lógica de modelos y ViewModels):
+```bash
+./gradlew :shared:testAndroidHostTest
+```
+
+### Integración Continua (CI)
+El proyecto incluye un flujo automatizado de GitHub Actions en **`.github/workflows/ci.yml`** que compila la app y ejecuta las pruebas unitarias automáticamente en cada `push` o `Pull Request`.
+
 ### iOS
 El código compartido está preparado para iOS (abrir `iosApp` en Xcode en un Mac), pero **este target no fue probado** (ver limitaciones).
-
-### Tests
-<!-- [COMPLETAR] Si tenés tests, dejá este bloque. Si no, borrá la sección. -->
-```bash
-./gradlew :shared:allTests
-```
 
 ## 6. Estructura del repositorio
 
 ```
 challenge/
+├── .github/workflows/ci.yml Workflow de GitHub Actions (CI)
 ├── androidApp/     Punto de entrada Android
 ├── iosApp/         Punto de entrada iOS (no probado)
 ├── shared/         Módulo KMP con el 100% de la lógica y la UI compartida
@@ -144,7 +142,6 @@ challenge/
 
 - [Especificación de requisitos (SRS)](SRS_Futbolboxd.md)
 
-
-## Stack
+---
 
 Kotlin `2.4.20` · Compose Multiplatform `1.12.1` · Koin · GitLive Firebase (Auth y Firestore) · Coil 3 · JetBrains Navigation Compose · Material 3

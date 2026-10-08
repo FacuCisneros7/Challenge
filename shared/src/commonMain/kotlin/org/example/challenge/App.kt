@@ -27,7 +27,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
-import org.example.challenge.data.remote.DatabaseSeeder
 import org.example.challenge.domain.repository.UserRepository
 import org.example.challenge.ui.auth.AuthViewModel
 import org.example.challenge.ui.auth.LoginScreen
